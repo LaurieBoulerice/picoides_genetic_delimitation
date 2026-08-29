@@ -36,7 +36,7 @@ p_dorsalis_sf <- p_dorsalis_sf %>%
  mutate(
   POP = case_when(
    State_Province %in% c("New Mexico", "Arizona","Utah","Colorado") ~ "South",
-   State_Province %in% c("Washington", "Oregon","Idaho","British Columbia") ~ "South",
+   State_Province %in% c("Washington", "Oregon","Idaho","British Columbia") ~ "Pacific",
   State_Province %in% c("Alaska") ~ "Alaska",
  State_Province %in% c("Manitoba") ~ "Manitoba",
   State_Province == "Alberta" ~ "Alberta",
@@ -45,7 +45,16 @@ p_dorsalis_sf <- p_dorsalis_sf %>%
 )
   )
 
-
+###population as morphological subspecies
+p_dorsalis_sf <- p_dorsalis_sf %>%
+  mutate(
+    subspecies = case_when(
+      State_Province %in% c("New Mexico", "Arizona","Utah","Colorado") ~ "dorsalis",
+      State_Province %in% c("Washington", "Oregon","Idaho","British Columbia","Alaska","Manitoba","Alberta") ~ "fasciatus",
+      State_Province == "Quebec" ~ "bacatus",
+      TRUE ~ NA_character_
+    )
+  )
 
 
 ########
@@ -67,13 +76,9 @@ cov_names <- as.matrix(read.table(
 
 meta_pca <- meta[match(samples, meta$strpID), ]
 
-west_states <- c("California", "Oregon", "Washington")
 
-subgroups_pca <- ifelse(
-  meta_pca$State_Province %in% west_states,
-  "West",
-  meta_pca$State_Province
-)
+subgroups_pca_population <- p_dorsalis_sf$POP #marie-pier's population
+subgroups_pca_subspecies<-p_dorsalis_sf$subspecies #by subspecies
 
 pca_nuDNA <- eigen(cov_names)
 
@@ -82,7 +87,7 @@ eigenvectors <- pca_nuDNA$vectors
 pca_vectors <- as_tibble(
   cbind(
     sample = samples,
-    pop = subgroups_pca,
+    pop = subgroups_pca_population,
     data.frame(eigenvectors)
   )
 )
@@ -96,18 +101,17 @@ varPC3 <- (pca_nuDNA$values[3]/pca_eigenval_sum)*100 #Variance explained by PC3
 varPC4 <- (pca_nuDNA$values[4]/pca_eigenval_sum)*100 #Variance explained by PC4
 
 pop_colors_pca <- c(
-  "West" = "#377eb8", 
+  "Pacific" = "#377eb8", 
   "Alberta" = "#a6cee3",
   "Manitoba" = "#b2df8a",
-  "Minnesota" = "#33a02c",
-  "Michigan" = "#fb9a99",
-  "New York" = "#e31a1c",
+  "South" = "#33a02c",
+  "Alaska" = "#fb9a99",
   "Quebec" = "#fdbf6f"
 )
 
 ggplot(pca_vectors, aes(X1, X2, color = pop)) +
   geom_point(size = 3) +
-  xlab("PC1 (4.57%)") +
-  ylab("PC2 (2.46%)")+
+  xlab("PC1 (13.50%)") +
+  ylab("PC2 (1.95%)")+
   scale_color_manual(values = pop_colors_pca) +
   theme_grey()
