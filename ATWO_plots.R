@@ -77,20 +77,10 @@ cov_names <- as.matrix(read.table(
 meta_pca <- meta[match(samples, meta$strpID), ]
 
 
-subgroups_pca_population <- p_dorsalis_sf$POP #marie-pier's population
-subgroups_pca_subspecies<-p_dorsalis_sf$subspecies #by subspecies
-
 pca_nuDNA <- eigen(cov_names)
 
 eigenvectors <- pca_nuDNA$vectors
 
-pca_vectors <- as_tibble(
-  cbind(
-    sample = samples,
-    pop = subgroups_pca_population,
-    data.frame(eigenvectors)
-  )
-)
 
 ##look at PC variance explained
 
@@ -99,6 +89,21 @@ varPC1 <- (pca_nuDNA$values[1]/pca_eigenval_sum)*100 #Variance explained by PC1
 varPC2 <- (pca_nuDNA$values[2]/pca_eigenval_sum)*100 #Variance explained by PC2
 varPC3 <- (pca_nuDNA$values[3]/pca_eigenval_sum)*100 #Variance explained by PC3
 varPC4 <- (pca_nuDNA$values[4]/pca_eigenval_sum)*100 #Variance explained by PC4
+
+########################################
+#By Marie-Pier's population assignment
+########################################
+subgroups_pca_population<- p_dorsalis_sf$POP[ #natch to follow the same order 
+  match(samples, p_dorsalis_sf$strpID)
+]
+
+pca_vectors <- as_tibble(
+  cbind(
+    sample = samples,
+    pop = subgroups_pca_population,
+    data.frame(eigenvectors)
+  )
+)
 
 pop_colors_pca <- c(
   "Pacific" = "#377eb8", 
@@ -115,3 +120,38 @@ ggplot(pca_vectors, aes(X1, X2, color = pop)) +
   ylab("PC2 (1.95%)")+
   scale_color_manual(values = pop_colors_pca) +
   theme_grey()
+
+
+
+########################################
+#By Msubspecies geographical range
+########################################
+
+subgroups_pca_subspecies<- p_dorsalis_sf$subspecies[ #natch to follow the same order 
+  match(samples, p_dorsalis_sf$strpID)
+]
+
+
+pca_vectors_subspecies <- as_tibble(
+  cbind(
+    sample = samples,
+    pop = subgroups_pca_subspecies,
+    data.frame(eigenvectors)
+  )
+)
+
+pop_colors_pca_subspecies <- c(
+  "fasciatus" = "#377eb8", 
+  "bacatus" = "#b2df8a",
+  "dorsalis" = "#fb9a99"
+)
+
+ggplot(pca_vectors_subspecies, aes(X1, X2, color = pop)) +
+  geom_point(size = 3) +
+  xlab("PC1 (13.50%)") +
+  ylab("PC2 (1.95%)")+
+  scale_color_manual(values = pop_colors_pca_subspecies) +
+  theme_grey()
+
+
+
