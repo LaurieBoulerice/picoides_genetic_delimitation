@@ -1,6 +1,7 @@
 library(dplyr)
+library(sf)
 
-##########
+########sfheaders##########
 #metadata
 ##########
 
@@ -154,4 +155,47 @@ ggplot(pca_vectors_subspecies, aes(X1, X2, color = pop)) +
   theme_grey()
 
 
+########################################
+#By state and province 
+########################################
+
+subgroups_pca_state<- p_dorsalis_sf$State_Province[ #natch to follow the same order 
+  match(samples, p_dorsalis_sf$strpID)
+]
+
+
+pca_vectors_state <- as_tibble(
+  cbind(
+    sample = samples,
+    pop = subgroups_pca_state,
+    data.frame(eigenvectors)
+  )
+)
+
+
+pop_colors_pca_state <- c(   "British Columbia" = "#377eb8",
+                             "Idaho"            = "#4daf4a",
+                             "Alaska"           = "#e41a1c",
+                             "Washington"       = "#984ea3",
+                             "Oregon"           = "#ff7f00",
+                             "Manitoba"         = "#b2df8a",
+                             "Alberta"          = "#a6cee3",
+                             
+                             # Southern states — same color
+                             "New Mexico"       = "#fb9a99",
+                             "Utah"             = "#fb9a99",
+                             "Colorado"         = "#fb9a99",
+                             "Arizona"          = "#fb9a99",
+                             
+                             "Quebec"           = "#fdbf6f"
+)
+
+
+ggplot(pca_vectors_state, aes(X1, X2, color = pop)) +
+  geom_point(size = 3) +
+  xlab("PC1 (13.50%)") +
+  ylab("PC2 (1.95%)")+
+  scale_color_manual(values = pop_colors_pca_state) +
+  theme_grey()
+geom_text(aes(label = sample), vjust = -0.7, size = 3)
 
