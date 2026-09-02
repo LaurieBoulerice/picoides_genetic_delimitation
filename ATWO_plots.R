@@ -238,11 +238,13 @@ pop_group <- factor(
   levels = pop_levels
 )
 
-# Get desired west → east order
 ord <- order(pop_group)
 
+######
+#K=2
+#####
 
-# ---- Load NGSadmix data ----
+#Load NGSadmix data 
 
 ngsADMIX_files <- list.files(
   path = "/media/ssd/Bioinformatics/p_dorsalis_07/downstream_analyses/NGSadmix/all_samples/",
@@ -254,13 +256,12 @@ k2_files <- ngsADMIX_files[grepl("k2", ngsADMIX_files)]
 
 data_k2 <- read.table(k2_files[1])
 
-
-# ---- NOW reorder both ----
+#reorder both
 
 data_k2 <- data_k2[ord, ]
 pop_group <- pop_group[ord]
 
-###better plot
+#plot
 par(mar = c(10, 4, 2, 1))  # bottom margin bigger
 bp <- barplot(
   t(data_k2),
@@ -297,9 +298,24 @@ axis(
   line = 1   # <-- THIS is what fixes overlap
 )
 
-#for k=3
-k3_files <- files[grepl("k3",ngsADMIX_files)]
+#####
+#K=3
+#####
+
+#Load NGSadmix data 
+
+ngsADMIX_files <- list.files(
+  path = "/media/ssd/Bioinformatics/p_dorsalis_07/downstream_analyses/NGSadmix/all_samples/",
+  pattern = "qopt",
+  full.names = TRUE
+)
+
+k3_files <- ngsADMIX_files[grepl("k3", ngsADMIX_files)]
+
 data_k3 <- read.table(k3_files[1])
+
+
+#reorder both
 
 data_k3 <- data_k3[ord, ]
 pop_group <- pop_group[ord]
@@ -325,7 +341,7 @@ rect(
   xright = bp + 0.5,
   ybottom = -0.06,
   ytop = 0,
-  col = pop_colors[as.character(pop_group)],
+  col = pop_colors_ngsadmix[as.character(pop_group)],
   border = NA,
   xpd = TRUE
 )
@@ -340,7 +356,6 @@ axis(
   cex.axis = 0.8,
   line = 1   # <-- THIS is what fixes overlap
 )
-
 
 ##evaluating the ngsadmix model with Eval ADMIX 
 
