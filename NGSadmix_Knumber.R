@@ -1,15 +1,15 @@
 library(stringr)
 
-data_all<-list.files("/media/ssd/Bioinformatics/downstream_analyses/NGSadmix/NoWest", pattern = ".log", full.names = T)
+data_all<-list.files("/media/ssd/Bioinformatics/p_dorsalis_07/downstream_analyses/NGSadmix/all_samples", pattern = ".log", full.names = T)
 
-bigData_all<-lapply(1:140, FUN = function(i) readLines(data_all[i]))
-foundset<-sapply(1:140, FUN= function(x) bigData_all[[x]][which(str_sub(bigData_all[[x]], 1, 1) == 'b')])
+bigData_all<-lapply(1:160, FUN = function(i) readLines(data_all[i]))
+foundset<-sapply(1:160, FUN= function(x) bigData_all[[x]][which(str_sub(bigData_all[[x]], 1, 1) == 'b')])
 
 
 
 as.numeric( sub("\\D*(\\d+).*", "\\1", foundset) )
 
-logs<-data.frame(K = rep(1:7, each=20))
+logs<-data.frame(K = rep(1:8, each=20))
 
 #add to it our likelihood values
 
@@ -25,7 +25,7 @@ tapply(logs$like, logs$K, mean)
 library(stringr)
 
 files <- list.files(
-  "/media/ssd/Bioinformatics/downstream_analyses/NGSadmix/NoWest/",
+  "/media/ssd/Bioinformatics/p_dorsalis_07/downstream_analyses/NGSadmix/all_samples",
   pattern = "\\.log$",
   full.names = TRUE
 )
@@ -42,7 +42,7 @@ get_ll <- function(file) {
 
 ll <- sapply(files, get_ll)
 
-K <- rep(1:7, each = 20)
+K <- rep(1:8, each = 20)
 
 df <- data.frame(
   K = K,
@@ -66,88 +66,37 @@ plot(summary_df$K, summary_df$mean_ll, type = "b",
      ylab = "Mean log-likelihood")
 
 
+##################
+### Evanno method
+##################
 
-### try evanno method
+#Evanno method can't identify the best number of K if it's K=1, so it has its limitations. 
 
 library(dplyr)
+
 
 summary_df <- logs %>%
   group_by(K) %>%
   summarise(
     mean_ll = mean(like),
-    sd_ll   = sd(like),
+    sd_ll = sd(like),
     .groups = "drop"
   ) %>%
   arrange(K)
 
-summary_df <- summary_df %>%
-  mutate(
-    L_prime = c(NA, diff(mean_ll))
-  )
-
-summary_df <- summary_df %>%
-  mutate(
-    L_second = c(NA, diff(L_prime))
-  )
-
-summary_df <- summary_df %>%
-  mutate(
-    deltaK = abs(L_second) / sd_ll
-  )
-
-summary_df$deltaK[1] <- NA
-summary_df$deltaK[nrow(summary_df)] <- NA
+summary_df$deltaK <- NA_real_
+for (k in 2:(nrow(summary_df)-1)) {
+  L_second <- summary_df$mean_ll[k + 1] -
+    2 * summary_df$mean_ll[k] +
+    summary_df$mean_ll[k - 1]
+  
+  summary_df$deltaK[k] <- abs(L_second) / summary_df$sd_ll[k]
+} #gives the same result as clumpak! 
 
 
-
-# mean per K per replicate already assumed
-df <- summary_df
-
-# first derivative of mean loglik
-df$L_prime <- c(NA, diff(df$mean_ll))
-
-# second derivative
-df$L_second <- c(NA, diff(df$L_prime))
-
-# Evanno delta K
-df$deltaK <- abs(df$L_second) / df$sd_ll
-
-df
-
-##plotting
-### custom pop leves: 
-pop_levels <- c(
-  "California",
-  "Oregon",
-  "Washington",
-  "Alberta",
-  "Manitoba",
-  "Minnesota",
-  "Michigan",
-  "New York",
-  "Quebec"
-)
-pop <- factor(pop_province, levels = pop_levels)
-
-ord <- order(pop)
-
-
-files <- list.files(path="/media/ssd/Bioinformatics/downstream_analyses/NGSadmix",pattern='qopt',full.names=TRUE)
-pop<-pop_province
-k3_files <- files[grepl("k2",files)]
-data_k3 <- read.table(k3_files[1])
-cols <- rainbow(3)
-#ord = order(pop)
-barplot(t(data_k3)[,pop],col=cols,names=pop[ord],las=2,
-        space=0,
-        ylab="Admixture proportions",
-        xlab="Individuals",
-        border=NA,
-        cex.names=0.75,main="NGSAdmix K=2")
-
-
-
+##################
 ##eval admix plot
+##################
 
 # read evalAdmix output
 mat <- as.matrix(read.table("/media/ssd/Bioinformatics/downstream_analyses/EvalAdmix/evaladmix_LD_pruned_ngsADMIX_k2_rep2_BBWO"))
