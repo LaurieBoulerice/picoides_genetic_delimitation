@@ -1,5 +1,9 @@
 library(stringr)
 
+##########
+#get data
+##########
+
 data_all<-list.files("/media/ssd/Bioinformatics/p_dorsalis_07/downstream_analyses/NGSadmix/all_samples", pattern = ".log", full.names = T)
 
 bigData_all<-lapply(1:160, FUN = function(i) readLines(data_all[i]))
@@ -14,56 +18,6 @@ logs<-data.frame(K = rep(1:8, each=20))
 #add to it our likelihood values
 
 logs$like<-as.vector(as.numeric( sub("\\D*(\\d+).*", "\\1", foundset) ))
-
-#and now we can calculate our delta K and probability
-
-tapply(logs$like, logs$K, FUN= function(x) mean(abs(x))/sd(abs(x)))
-
-tapply(logs$like, logs$K, mean)
-
-
-library(stringr)
-
-files <- list.files(
-  "/media/ssd/Bioinformatics/p_dorsalis_07/downstream_analyses/NGSadmix/all_samples",
-  pattern = "\\.log$",
-  full.names = TRUE
-)
-
-get_ll <- function(file) {
-  x <- readLines(file, warn = FALSE)
-  
-  # adjust pattern depending on your log format
-  line <- x[str_detect(x, "loglikelihood|Log likelihood|like")]
-  
-  # extract numeric value (handles scientific notation too)
-  as.numeric(str_extract(line, "-?\\d+\\.?\\d*(e[+-]?\\d+)?"))
-}
-
-ll <- sapply(files, get_ll)
-
-K <- rep(1:8, each = 20)
-
-df <- data.frame(
-  K = K,
-  loglik = ll
-)
-
-library(dplyr)
-
-summary_df <- df %>%
-  group_by(K) %>%
-  summarise(
-    mean_ll = mean(loglik, na.rm = TRUE),
-    sd_ll   = sd(loglik, na.rm = TRUE),
-    .groups = "drop"
-  )
-
-summary_df
-
-plot(summary_df$K, summary_df$mean_ll, type = "b",
-     xlab = "K",
-     ylab = "Mean log-likelihood")
 
 
 ##################
