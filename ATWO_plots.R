@@ -37,7 +37,7 @@ p_dorsalis_sf <- p_dorsalis_sf %>%
  mutate(
   POP = case_when(
    State_Province %in% c("New Mexico", "Arizona","Utah","Colorado") ~ "South",
-   State_Province %in% c("Washington", "Oregon","Idaho","British Columbia") ~ "Pacific",
+   State_Province %in% c("Washington", "Oregon","Idaho","British Columbia") ~ "Pacific", #marie-Pier wrote Idaho in her memoir but there is no Idaho samples
   State_Province %in% c("Alaska") ~ "Alaska",
  State_Province %in% c("Manitoba") ~ "Manitoba",
   State_Province == "Alberta" ~ "Alberta",
@@ -203,46 +203,59 @@ geom_text(aes(label = sample), vjust = -0.7, size = 3)
 #NGSadmix
 ##########
 
-#same groupings as pca 
+###################################
+#Marie-Pier's population assignment
+###################################
 
-meta_pca <- meta_pca[match(samples, meta_pca$strpID), ]
 
-west_states <- c("California", "Oregon", "Washington")
+subgroups_ngsadmix <- p_dorsalis_sf$State_Province[
+  match(samples, p_dorsalis_sf$strpID)
+]
 
-meta_pca$pop_group <- ifelse(
-  meta_pca$State_Province %in% west_states,
-  "West",
-  meta_pca$State_Province
+# Order from west to east
+pop_levels <- c(
+  "New Mexico", "Arizona", "Colorado", "Utah",
+  "Oregon", "Washington", "British Columbia", "Alaska",
+  "Alberta", "Manitoba", "Quebec"
 )
 
-#order from west to east 
-pop_levels <- c( "California","Oregon","Washington" ,"Alberta", "Manitoba", "Minnesota", "Michigan", "New York", "Quebec" ) 
-
-pop_colors <- c(
-  "California" = "#377eb8", 
-  "Oregon" = "#377eb8", 
-  "Washington" = "#377eb8", 
+pop_colors_ngsadmix <- c(
+  "Oregon" = "#377eb8",
+  "Washington" = "#377eb8",
+  "British Columbia" = "#377eb8",
   "Alberta" = "#a6cee3",
   "Manitoba" = "#b2df8a",
-  "Minnesota" = "#33a02c",
-  "Michigan" = "#fb9a99",
-  "New York" = "#e31a1c",
-  "Quebec" = "#fdbf6f"
+  "New Mexico" = "#33a02c",
+  "Arizona" = "#33a02c",
+  "Colorado" = "#33a02c",
+  "Utah" = "#33a02c",
+  "Quebec" = "#fdbf6f",
+  "Alaska" = "#fb9a99"
 )
 
+pop_group <- factor(
+  subgroups_ngsadmix,
+  levels = pop_levels
+)
 
-pop_group <- factor(meta_pca$State_Province, levels = pop_levels)
+# Get desired west → east order
 ord <- order(pop_group)
 
 
-#all(meta_pca$strpID == samples) #check to see if it is well aligned 
+# ---- Load NGSadmix data ----
 
-##now load the data
-ngsADMIX_files<-list.files(path="/media/ssd/Bioinformatics/downstream_analyses/NGSadmix",pattern='qopt',full.names=TRUE)
+ngsADMIX_files <- list.files(
+  path = "/media/ssd/Bioinformatics/p_dorsalis_07/downstream_analyses/NGSadmix/all_samples/",
+  pattern = "qopt",
+  full.names = TRUE
+)
 
-#for k=2
-k2_files <- files[grepl("k2",ngsADMIX_files)]
+k2_files <- ngsADMIX_files[grepl("k2", ngsADMIX_files)]
+
 data_k2 <- read.table(k2_files[1])
+
+
+# ---- NOW reorder both ----
 
 data_k2 <- data_k2[ord, ]
 pop_group <- pop_group[ord]
@@ -268,7 +281,7 @@ rect(
   xright = bp + 0.5,
   ybottom = -0.06,
   ytop = 0,
-  col = pop_colors[as.character(pop_group)],
+  col = pop_colors_ngsadmix[as.character(pop_group)],
   border = NA,
   xpd = TRUE
 )
