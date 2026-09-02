@@ -199,3 +199,163 @@ ggplot(pca_vectors_state, aes(X1, X2, color = pop)) +
   theme_grey()
 geom_text(aes(label = sample), vjust = -0.7, size = 3)
 
+##########
+#NGSadmix
+##########
+
+#same groupings as pca 
+
+meta_pca <- meta_pca[match(samples, meta_pca$strpID), ]
+
+west_states <- c("California", "Oregon", "Washington")
+
+meta_pca$pop_group <- ifelse(
+  meta_pca$State_Province %in% west_states,
+  "West",
+  meta_pca$State_Province
+)
+
+#order from west to east 
+pop_levels <- c( "California","Oregon","Washington" ,"Alberta", "Manitoba", "Minnesota", "Michigan", "New York", "Quebec" ) 
+
+pop_colors <- c(
+  "California" = "#377eb8", 
+  "Oregon" = "#377eb8", 
+  "Washington" = "#377eb8", 
+  "Alberta" = "#a6cee3",
+  "Manitoba" = "#b2df8a",
+  "Minnesota" = "#33a02c",
+  "Michigan" = "#fb9a99",
+  "New York" = "#e31a1c",
+  "Quebec" = "#fdbf6f"
+)
+
+
+pop_group <- factor(meta_pca$State_Province, levels = pop_levels)
+ord <- order(pop_group)
+
+
+#all(meta_pca$strpID == samples) #check to see if it is well aligned 
+
+##now load the data
+ngsADMIX_files<-list.files(path="/media/ssd/Bioinformatics/downstream_analyses/NGSadmix",pattern='qopt',full.names=TRUE)
+
+#for k=2
+k2_files <- files[grepl("k2",ngsADMIX_files)]
+data_k2 <- read.table(k2_files[1])
+
+data_k2 <- data_k2[ord, ]
+pop_group <- pop_group[ord]
+
+###better plot
+par(mar = c(10, 4, 2, 1))  # bottom margin bigger
+bp <- barplot(
+  t(data_k2),
+  col = c("grey30", "grey80"),
+  border = NA,
+  space = 0,
+  xaxt = "n",
+  ylab = "Admixture proportion"
+)
+separators <- tapply(bp, pop_group, range)
+separators <- sapply(separators, function(x) x[2])
+separators <- separators[-length(separators)]
+
+abline(v = separators + 0.5, col = "white", lwd = 1)
+
+rect(
+  xleft = bp - 0.5,
+  xright = bp + 0.5,
+  ybottom = -0.06,
+  ytop = 0,
+  col = pop_colors[as.character(pop_group)],
+  border = NA,
+  xpd = TRUE
+)
+group_centers <- tapply(bp, pop_group, mean)
+
+axis(
+  1,
+  at = group_centers,
+  labels = pop_levels,
+  tick = FALSE,
+  las = 2,
+  cex.axis = 0.8,
+  line = 1   # <-- THIS is what fixes overlap
+)
+
+#for k=3
+k3_files <- files[grepl("k3",ngsADMIX_files)]
+data_k3 <- read.table(k3_files[1])
+
+data_k3 <- data_k3[ord, ]
+pop_group <- pop_group[ord]
+
+###better plot
+par(mar = c(10, 4, 2, 1))  # bottom margin bigger
+bp <- barplot(
+  t(data_k3),
+  col = c("grey30", "grey60","grey90"),
+  border = NA,
+  space = 0,
+  xaxt = "n",
+  ylab = "Admixture proportion"
+)
+separators <- tapply(bp, pop_group, range)
+separators <- sapply(separators, function(x) x[2])
+separators <- separators[-length(separators)]
+
+abline(v = separators + 0.5, col = "white", lwd = 1)
+
+rect(
+  xleft = bp - 0.5,
+  xright = bp + 0.5,
+  ybottom = -0.06,
+  ytop = 0,
+  col = pop_colors[as.character(pop_group)],
+  border = NA,
+  xpd = TRUE
+)
+group_centers <- tapply(bp, pop_group, mean)
+
+axis(
+  1,
+  at = group_centers,
+  labels = pop_levels,
+  tick = FALSE,
+  las = 2,
+  cex.axis = 0.8,
+  line = 1   # <-- THIS is what fixes overlap
+)
+
+
+##evaluating the ngsadmix model with Eval ADMIX 
+
+mat <- as.matrix(read.table("/media/ssd/Bioinformatics/downstream_analyses/EvalAdmix/ALL/evaladmix_LD_pruned_ngsADMIX_k1_rep1_BBWO"))
+
+
+ord <- order(pop_province)
+mat_ord <- mat[ord, ord]
+
+# IMPORTANT FIX HERE
+lim <- max(abs(mat_ord), na.rm = TRUE)
+
+cols <- colorRampPalette(rev(brewer.pal(11, "RdBu")))(100)
+
+pheatmap(
+  mat_ord,
+  color = cols,
+  breaks = seq(-lim, lim, length.out = 101),
+  
+  cluster_rows = FALSE,
+  cluster_cols = FALSE,
+  
+  border_color = NA,
+  na_col = "grey90",   # optional but nice for diagonal NA
+  
+  show_rownames = FALSE,
+  show_colnames = FALSE,
+  legend = TRUE
+)
+
+
