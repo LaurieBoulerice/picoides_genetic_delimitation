@@ -611,11 +611,14 @@ for (k in 2:(nrow(summary_df)-1)) {
 ###########
 #EvalAdmix
 ###########
+library(RColorBrewer)
+library(pheatmap)
 
-mat <- as.matrix(read.table("/media/ssd/Bioinformatics/p_dorsalis_07/downstream_analyses/NGSadmix/all_samples/evaladmix_LD_pruned_ngsADMIX_k1_rep1_BBWO"))
+mat <- as.matrix(read.table(
+  "/media/ssd/Bioinformatics/p_dorsalis_07/downstream_analyses/EvalAdmix/all_samples/evaladmix_LD_pruned_ngsADMIX_k2_rep18_ATTW"
+))
 
-
-ord <- order(pop_province)
+ord <- order(pop_group)
 mat_ord <- mat[ord, ord]
 
 # IMPORTANT FIX HERE
@@ -634,8 +637,8 @@ pheatmap(
   border_color = NA,
   na_col = "grey90",   # optional but nice for diagonal NA
   
-  show_rownames = FALSE,
-  show_colnames = FALSE,
+  show_rownames = TRUE,
+  show_colnames = TRUE,
   legend = TRUE
 )
 
