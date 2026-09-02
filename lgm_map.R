@@ -46,9 +46,22 @@ lgm_landmass <- st_transform(
   4326
 )
 
+###########################
+#boreal forest delimitation
+###########################
+
+boreal_forest<-st_read("/media/ssd/picoides_genetic_delimitation/Data/Raw/boreal/NABoreal.shp")
+
+boreal_forest <- st_transform(
+  boreal_forest,
+  4326
+)
+
 ########
 #plot
 #######
+
+#Plot LGM
 
 ggplot() +
   geom_sf(
@@ -78,3 +91,28 @@ ggplot() +
   theme(
     panel.grid = element_blank()
   )
+
+#Plot boreal forest delimitation
+ggplot() +
+  geom_sf(
+    data = world,
+    fill = "grey90",
+    color = "grey50",
+    linewidth = 0.3
+  ) +
+  geom_sf(
+    data = boreal_forest,
+    fill='#7FB77E',
+    color = "#7FB77E",
+    linewidth = 0.3
+  ) +
+  coord_sf(
+    xlim = c(-180, -40),
+    ylim = c(30, 85),
+    expand = FALSE
+  ) +
+  theme_minimal() +
+  theme(
+    panel.grid = element_blank()
+  )
+
