@@ -26,7 +26,7 @@ p_dorsalis_sf<-st_as_sf(dorsalis_metadata,coords=c('longitude','latitude'),crs=4
 
 ##make a metadata fior population groups
 
-meta <- dorsalis_metadata[, c("strpID", "State_Province")]
+meta <- dorsalis_metadata[, c("strpID", "State_Province","latitude","longitude")]
 meta$strpID <- trimws(meta$strpID)
 meta$State_Province <- gsub("Ê", "", meta$State_Province) #clean state and prvince names
 p_dorsalis_sf$State_Province <- sub("Ê$", "", p_dorsalis_sf$State_Province)
@@ -208,7 +208,16 @@ geom_text(aes(label = sample), vjust = -0.7, size = 3)
 ###################################
 
 
-subgroups_ngsadmix <- p_dorsalis_sf$State_Province[
+subgroups_ngsadmix <- meta$State_Province[
+  match(samples, p_dorsalis_sf$strpID)
+]
+
+#I also want to order samples within states and provinces by latitude and longitude 
+longitudes_ngsadmix <- meta$longitude[
+  match(samples, p_dorsalis_sf$strpID)
+]
+
+latitudes_ngsadmix <- meta$latitude[
   match(samples, p_dorsalis_sf$strpID)
 ]
 
@@ -238,7 +247,22 @@ pop_group <- factor(
   levels = pop_levels
 )
 
-ord <- order(pop_group)
+ord <- order(
+  pop_group,
+  ifelse(
+    subgroups_ngsadmix %in% c(
+      "Oregon", "Washington", "British Columbia","Alaska"
+    ),
+    latitudes_ngsadmix,
+    ifelse(
+      subgroups_ngsadmix %in% c(
+        "Alberta", "Manitoba", "Quebec"
+      ),
+      longitudes_ngsadmix,
+      0
+    )
+  )
+)
 
 ######
 #K=2
@@ -361,7 +385,16 @@ axis(
 #Morphological subspecies population assignment
 ###############################################
 
-subgroups_ngsadmix_subspecies <- p_dorsalis_sf$State_Province[
+subgroups_ngsadmix <- meta$State_Province[
+  match(samples, p_dorsalis_sf$strpID)
+]
+
+#I also want to order samples within states and provinces by latitude and longitude 
+longitudes_ngsadmix <- meta$longitude[
+  match(samples, p_dorsalis_sf$strpID)
+]
+
+latitudes_ngsadmix <- meta$latitude[
   match(samples, p_dorsalis_sf$strpID)
 ]
 
@@ -391,7 +424,22 @@ pop_group <- factor(
   levels = pop_levels
 )
 
-ord <- order(pop_group)
+ord <- order(
+  pop_group,
+  ifelse(
+    subgroups_ngsadmix %in% c(
+      "Oregon", "Washington", "British Columbia","Alaska"
+    ),
+    latitudes_ngsadmix,
+    ifelse(
+      subgroups_ngsadmix %in% c(
+        "Alberta", "Manitoba", "Quebec"
+      ),
+      longitudes_ngsadmix,
+      0
+    )
+  )
+)
 
 ######
 #K=2
