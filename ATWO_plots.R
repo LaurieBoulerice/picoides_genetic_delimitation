@@ -357,6 +357,157 @@ axis(
   line = 1   # fix overlap
 )
 
+###############################################
+#Morphological subspecies population assignment
+###############################################
+
+subgroups_ngsadmix_subspecies <- p_dorsalis_sf$State_Province[
+  match(samples, p_dorsalis_sf$strpID)
+]
+
+# Order from west to east
+pop_levels <- c(
+  "New Mexico", "Arizona", "Colorado", "Utah",
+  "Oregon", "Washington", "British Columbia", "Alaska",
+  "Alberta", "Manitoba", "Quebec"
+)
+
+pop_colors_ngsadmix_subspecies <- c(
+  "Oregon" = "#377eb8",
+  "Washington" = "#377eb8",
+  "British Columbia" = "#377eb8",
+  "Alberta" = "#377eb8",
+  "Manitoba" = "#377eb8",
+  "New Mexico" = "#fb9a99",
+  "Arizona" = "#fb9a99",
+  "Colorado" = "#fb9a99",
+  "Utah" = "#fb9a99",
+  "Quebec" = "#b2df8a",
+  "Alaska" = "#377eb8"
+)
+
+pop_group <- factor(
+  subgroups_ngsadmix_subspecies,
+  levels = pop_levels
+)
+
+ord <- order(pop_group)
+
+######
+#K=2
+#####
+
+#Load NGSadmix data 
+
+ngsADMIX_files <- list.files(
+  path = "/media/ssd/Bioinformatics/p_dorsalis_07/downstream_analyses/NGSadmix/all_samples/",
+  pattern = "qopt",
+  full.names = TRUE
+)
+
+k2_files <- ngsADMIX_files[grepl("k2", ngsADMIX_files)]
+
+data_k2 <- read.table(k2_files[1])
+
+#reorder both
+
+data_k2 <- data_k2[ord, ]
+pop_group <- pop_group[ord]
+
+#plot
+par(mar = c(10, 4, 2, 1))  # bottom margin bigger
+bp <- barplot(
+  t(data_k2),
+  col = c("grey30", "grey80"),
+  border = NA,
+  space = 0,
+  xaxt = "n",
+  ylab = "Admixture proportion"
+)
+separators <- tapply(bp, pop_group, range)
+separators <- sapply(separators, function(x) x[2])
+separators <- separators[-length(separators)]
+
+abline(v = separators + 0.5, col = "white", lwd = 1)
+
+rect(
+  xleft = bp - 0.5,
+  xright = bp + 0.5,
+  ybottom = -0.06,
+  ytop = 0,
+  col = pop_colors_ngsadmix_subspecies[as.character(pop_group)],
+  border = NA,
+  xpd = TRUE
+)
+group_centers <- tapply(bp, pop_group, mean)
+
+axis(
+  1,
+  at = group_centers,
+  labels = pop_levels,
+  tick = FALSE,
+  las = 2,
+  cex.axis = 0.8,
+  line = 1   # <-- THIS is what fixes overlap
+)
+
+#####
+#K=3
+#####
+
+ngsADMIX_files <- list.files(
+  path = "/media/ssd/Bioinformatics/p_dorsalis_07/downstream_analyses/NGSadmix/all_samples/",
+  pattern = "qopt",
+  full.names = TRUE
+)
+
+k3_files <- ngsADMIX_files[grepl("k3", ngsADMIX_files)]
+
+data_k3 <- read.table(k3_files[1])
+
+
+#reorder both
+
+data_k3 <- data_k3[ord, ]
+pop_group <- pop_group[ord]
+
+###plot
+par(mar = c(10, 4, 2, 1))  # bottom margin bigger
+bp <- barplot(
+  t(data_k3),
+  col = c("grey30", "grey60","grey90"),
+  border = NA,
+  space = 0,
+  xaxt = "n",
+  ylab = "Admixture proportion"
+)
+separators <- tapply(bp, pop_group, range)
+separators <- sapply(separators, function(x) x[2])
+separators <- separators[-length(separators)]
+
+abline(v = separators + 0.5, col = "white", lwd = 1)
+
+rect(
+  xleft = bp - 0.5,
+  xright = bp + 0.5,
+  ybottom = -0.06,
+  ytop = 0,
+  col = pop_colors_ngsadmix_subspecies[as.character(pop_group)],
+  border = NA,
+  xpd = TRUE
+)
+group_centers <- tapply(bp, pop_group, mean)
+
+axis(
+  1,
+  at = group_centers,
+  labels = pop_levels,
+  tick = FALSE,
+  las = 2,
+  cex.axis = 0.8,
+  line = 1   # fix overlap
+)
+
 ################################
 ##evaluating the ngsadmix model 
 ################################
