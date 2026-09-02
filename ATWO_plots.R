@@ -320,7 +320,7 @@ data_k3 <- read.table(k3_files[1])
 data_k3 <- data_k3[ord, ]
 pop_group <- pop_group[ord]
 
-###better plot
+###plot
 par(mar = c(10, 4, 2, 1))  # bottom margin bigger
 bp <- barplot(
   t(data_k3),
@@ -354,12 +354,66 @@ axis(
   tick = FALSE,
   las = 2,
   cex.axis = 0.8,
-  line = 1   # <-- THIS is what fixes overlap
+  line = 1   # fix overlap
 )
 
-##evaluating the ngsadmix model with Eval ADMIX 
+################################
+##evaluating the ngsadmix model 
+################################
 
-mat <- as.matrix(read.table("/media/ssd/Bioinformatics/downstream_analyses/EvalAdmix/ALL/evaladmix_LD_pruned_ngsADMIX_k1_rep1_BBWO"))
+###############
+#Evanno method
+###############
+
+#get data
+
+
+data_all<-list.files("/media/ssd/Bioinformatics/p_dorsalis_07/downstream_analyses/NGSadmix/all_samples", pattern = ".log", full.names = T)
+
+bigData_all<-lapply(1:160, FUN = function(i) readLines(data_all[i]))
+foundset<-sapply(1:160, FUN= function(x) bigData_all[[x]][which(str_sub(bigData_all[[x]], 1, 1) == 'b')])
+
+
+
+as.numeric( sub("\\D*(\\d+).*", "\\1", foundset) )
+
+logs<-data.frame(K = rep(1:8, each=20))
+
+#add to it our likelihood values
+
+logs$like<-as.vector(as.numeric( sub("\\D*(\\d+).*", "\\1", foundset) ))
+
+#calculate
+#Evanno method can't identify the best number of K if it's K=1, so it has its limitations. 
+
+library(dplyr)
+
+
+summary_df <- logs %>%
+  group_by(K) %>%
+  summarise(
+    mean_ll = mean(like),
+    sd_ll = sd(like),
+    .groups = "drop"
+  ) %>%
+  arrange(K)
+
+summary_df$deltaK <- NA_real_
+for (k in 2:(nrow(summary_df)-1)) {
+  L_second <- summary_df$mean_ll[k + 1] -
+    2 * summary_df$mean_ll[k] +
+    summary_df$mean_ll[k - 1]
+  
+  summary_df$deltaK[k] <- abs(L_second) / summary_df$sd_ll[k]
+} #gives the same result as clumpak! 
+
+
+
+###########
+#EvalAdmix
+###########
+
+mat <- as.matrix(read.table("/media/ssd/Bioinformatics/p_dorsalis_07/downstream_analyses/NGSadmix/all_samples/evaladmix_LD_pruned_ngsADMIX_k1_rep1_BBWO"))
 
 
 ord <- order(pop_province)
