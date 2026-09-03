@@ -384,6 +384,43 @@ ggplot() +
     ) +
   theme_minimal()
 
+#zoom on integration zone
+ggplot() +
+  geom_sf(
+    data = world,
+    fill = "grey100",
+    color = "grey50",
+    linewidth = 0.3
+  ) +
+  geom_scatterpie(
+    aes(
+      x = longitude,
+      y = latitude
+    ),
+    data = ngsadmix_map,
+    cols = c("K1", "K2"),
+    pie_scale = 0.03,
+    color = NA
+  ) +
+  scale_fill_manual(
+    values = c(
+      "K1" = "grey30",
+      "K2" = "grey80",
+      "bacatus" = "#b2df8a",  
+      "fasciatus" = "#377eb8", 
+      "dorsalis" = "#fb9a99"
+    ),
+    name = "Admixture proportion"
+  )  +
+  coord_sf(
+    xlim = c(-123, -115),
+    ylim = c(44, 51),
+    expand = FALSE
+  ) +
+  theme_minimal()
+
+
+
 
 #####
 #K=3
