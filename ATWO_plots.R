@@ -615,31 +615,33 @@ library(RColorBrewer)
 library(pheatmap)
 
 mat <- as.matrix(read.table(
-  "/media/ssd/Bioinformatics/p_dorsalis_07/downstream_analyses/EvalAdmix/all_samples/evaladmix_LD_pruned_ngsADMIX_k2_rep18_ATTW"
+  "/media/ssd/Bioinformatics/p_dorsalis_07/downstream_analyses/EvalAdmix/all_samples/evaladmix_LD_pruned_ngsADMIX_k3_rep3_ATTW"
 ))
 
+rownames(mat) <- pop_group #order matrix with population
+colnames(mat) <- pop_group #same 
+
 ord <- order(pop_group)
+
 mat_ord <- mat[ord, ord]
 
 # IMPORTANT FIX HERE
 lim <- max(abs(mat_ord), na.rm = TRUE)
 
+
 cols <- colorRampPalette(rev(brewer.pal(11, "RdBu")))(100)
 
 pheatmap(
-  mat_ord,
-  color = cols,
-  breaks = seq(-lim, lim, length.out = 101),
-  
-  cluster_rows = FALSE,
-  cluster_cols = FALSE,
-  
-  border_color = NA,
-  na_col = "grey90",   # optional but nice for diagonal NA
-  
-  show_rownames = TRUE,
-  show_colnames = TRUE,
-  legend = TRUE
-)
+       mat_ord,
+       color = cols,
+       breaks = seq(-lim, lim, length.out = 101),
+       cluster_rows = FALSE,
+       cluster_cols = FALSE,
+       border_color = NA,
+       na_col = "grey90",
+       show_rownames = TRUE,
+       show_colnames = TRUE,
+       legend = TRUE
+   )
 
 
