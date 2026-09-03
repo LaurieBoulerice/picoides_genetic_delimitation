@@ -364,19 +364,22 @@ ggplot() +
     ),
     data = ngsadmix_map,
     cols = c("K1", "K2"),
-    pie_scale = 0.3,
+    pie_scale = 0.15,
     color = NA
   ) +
   scale_fill_manual(
     values = c(
       "K1" = "grey30",
-      "K2" = "grey80"
+      "K2" = "grey80",
+      "bacatus" = "#b2df8a",  
+      "fasciatus" = "#377eb8", 
+      "dorsalis" = "#fb9a99"
     ),
     name = "Admixture proportion"
-  ) +
+  )  +
   coord_sf(
-    xlim = c(-160, -60),
-    ylim = c(30, 70),
+    xlim = c(-155, -65),
+    ylim = c(30, 65),
     expand = FALSE
     ) +
   theme_minimal()
@@ -484,7 +487,7 @@ ggplot() +
     ),
     data = ngsadmix_map_k3,
     cols = c("K1", "K2","K3"),
-    pie_scale = 0.3,
+    pie_scale = 0.15,
     color = NA
   ) +
   scale_fill_manual(
@@ -496,8 +499,8 @@ ggplot() +
     name = "Admixture proportion"
   ) +
   coord_sf(
-    xlim = c(-160, -60),
-    ylim = c(30, 70),
+    xlim = c(-155, -65),
+    ylim = c(30, 65),
     expand = FALSE
   ) +
   theme_minimal()
