@@ -1,7 +1,8 @@
 library(dplyr)
 library(sf)
+library(scatterpie)
 
-########sfheaders##########
+##################
 #metadata
 ##########
 
@@ -125,7 +126,7 @@ ggplot(pca_vectors, aes(X1, X2, color = pop)) +
 
 
 ########################################
-#By Msubspecies geographical range
+#By subspecies geographical range
 ########################################
 
 subgroups_pca_subspecies<- p_dorsalis_sf$subspecies[ #natch to follow the same order 
@@ -319,8 +320,67 @@ axis(
   tick = FALSE,
   las = 2,
   cex.axis = 0.8,
-  line = 1   # <-- THIS is what fixes overlap
+  line = 1   # fix overlap
 )
+#####################################
+#######map of pie charts of admixture 
+#####################################
+
+ngsADMIX_files <- list.files(
+  path = "/media/ssd/Bioinformatics/p_dorsalis_07/downstream_analyses/NGSadmix/all_samples/",
+  pattern = "qopt",
+  full.names = TRUE
+)
+
+k2_files <- ngsADMIX_files[grepl("k2", ngsADMIX_files)]
+
+data_k2 <- read.table(k2_files[1])
+
+# Give the two ancestry components names
+colnames(data_k2) <- c("K1", "K2")
+meta_map <- meta[match(samples, meta$strpID), ]
+
+# Add sample IDs in the ORIGINAL NGSadmix order
+ngsadmix_map <- data.frame(
+  sample = samples,
+  K1 = data_k2$K1,
+  K2 = data_k2$K2,
+  State_Province = meta_map$State_Province,
+  longitude=meta_map$longitude,
+  latitude=meta_map$latitude
+)
+
+ggplot() +
+  geom_sf(
+    data = world,
+    fill = "grey100",
+    color = "grey50",
+    linewidth = 0.3
+  ) +
+  geom_scatterpie(
+    aes(
+      x = longitude,
+      y = latitude
+    ),
+    data = ngsadmix_map,
+    cols = c("K1", "K2"),
+    pie_scale = 0.3,
+    color = NA
+  ) +
+  scale_fill_manual(
+    values = c(
+      "K1" = "grey30",
+      "K2" = "grey80"
+    ),
+    name = "Admixture proportion"
+  ) +
+  coord_sf(
+    xlim = c(-160, -60),
+    ylim = c(30, 70),
+    expand = FALSE
+    ) +
+  theme_minimal()
+
 
 #####
 #K=3
@@ -380,6 +440,67 @@ axis(
   cex.axis = 0.8,
   line = 1   # fix overlap
 )
+
+#####################################
+#######map of pie charts of admixture 
+#####################################
+
+ngsADMIX_files <- list.files(
+  path = "/media/ssd/Bioinformatics/p_dorsalis_07/downstream_analyses/NGSadmix/all_samples/",
+  pattern = "qopt",
+  full.names = TRUE
+)
+
+k3_files <- ngsADMIX_files[grepl("k3", ngsADMIX_files)]
+
+data_k3 <- read.table(k3_files[1])
+
+# Give the two ancestry components names
+colnames(data_k3) <- c("K1", "K2","K3")
+meta_map_k3 <- meta[match(samples, meta$strpID), ]
+
+# Add sample IDs in the ORIGINAL NGSadmix order
+ngsadmix_map_k3 <- data.frame(
+  sample = samples,
+  K1 = data_k2$K1,
+  K2 = data_k2$K2,
+  K3 = data_k3$K3,
+  State_Province = meta_map$State_Province,
+  longitude=meta_map$longitude,
+  latitude=meta_map$latitude
+)
+
+ggplot() +
+  geom_sf(
+    data = world,
+    fill = "grey100",
+    color = "grey50",
+    linewidth = 0.3
+  ) +
+  geom_scatterpie(
+    aes(
+      x = longitude,
+      y = latitude
+    ),
+    data = ngsadmix_map_k3,
+    cols = c("K1", "K2","K3"),
+    pie_scale = 0.3,
+    color = NA
+  ) +
+  scale_fill_manual(
+    values = c(
+      "K1" = "grey30",
+      "K2" = "grey60",
+      "K3" = "grey80"
+    ),
+    name = "Admixture proportion"
+  ) +
+  coord_sf(
+    xlim = c(-160, -60),
+    ylim = c(30, 70),
+    expand = FALSE
+  ) +
+  theme_minimal()
 
 ###############################################
 #Morphological subspecies population assignment
