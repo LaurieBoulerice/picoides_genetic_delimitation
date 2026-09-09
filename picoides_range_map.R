@@ -142,3 +142,78 @@ ggplot() +
     )
   ) 
 
+##########
+#Arcticus
+##########
+
+#these shapefiles were created in arcgis following birds of the world description of subspecies range
+arcticus_dist<-st_read('/media/ssd/picoides_genetic_delimitation/Data/Raw/picoides_range/Arcticus/Picoides_arcticus.shp')
+tenuirostris<-st_read('/media/ssd/picoides_genetic_delimitation/Data/Raw/picoides_range/Arcticus/tenuirostris/tenuirostris_subsp.shp')
+
+###MAP###
+arcticus_map <- ggplot() +
+  geom_sf(data = world, fill = "white", color = "grey60") +
+  geom_sf(data = arcticus_dist, fill = "#b2a300", color = NA, alpha = 0.4) +
+  coord_sf(
+    xlim = c(-163.08228, -51.63629),
+    ylim = c(34.07672, 69.69269),
+    expand = FALSE
+  )
+
+###Bangs subspecies map###
+arcticus_map <- ggplot() +
+  geom_sf(data = world, fill = "white", color = "grey60") +
+  geom_sf(data = arcticus_dist, fill = "#b2a300", color = NA, alpha = 0.4) +
+  geom_sf(data = tenuirostris, fill = "#e95f02", color = NA, alpha = 0.4) +
+  coord_sf(
+    xlim = c(-163.08228, -51.63629),
+    ylim = c(34.07672, 69.69269),
+    expand = FALSE
+  )
+
+
+#############
+#tridactylus
+#############
+
+#these shapefiles were created in arcgis following birds of the world description of subspecies range
+tridactylus_subsp<-st_read('/media/ssd/picoides_genetic_delimitation/Data/Raw/picoides_range/Tridactylus_subsp/P_tridactylus_subsp.shp')
+
+Subspecies<-c('alpinus','albidior','tridactylus','funebris','crissoleucus')
+tridactylus_subsp$subspecies<-Subspecies
+tridactylus_subsp<-tridactylus_subsp[,-(1:18)]
+
+alpinus_sf <- tridactylus_subsp[tridactylus_subsp$subspecies == "alpinus", ]
+crissoleucus_sf <- tridactylus_subsp[tridactylus_subsp$subspecies == "crissoleucus", ]
+tridactylus_sf <- tridactylus_subsp[tridactylus_subsp$subspecies == "tridactylus", ]
+albidior_sf <- tridactylus_subsp[tridactylus_subsp$subspecies == "albidior", ]
+funebris_sf <- tridactylus_subsp[tridactylus_subsp$subspecies == "funebris", ]
+
+###MAP###
+#bounding box for xy limits
+all_species <- rbind(
+  albidior_sf,
+  crissoleucus_sf,
+  alpinus_sf,
+  tridactylus_sf,
+  funebris_sf
+)
+
+tridactylus_map<-ggplot() +
+  geom_sf(data = world, fill = "white", color = "grey60") +
+  geom_sf(data = all_species, aes(fill = subspecies), color = NA, alpha = 0.4) +
+  coord_sf(
+    xlim = c(-7.681294, 180.088501),
+    ylim = c(25.509904, 75.472717),
+    expand = FALSE
+  ) +
+  scale_fill_manual(
+    values = c(
+      "albidior" = "#ffff33",
+      "crissoleucus" = "#e31a1c",
+      "alpinus" = "#1f78b4",
+      "tridactylus" = "#ff7f00",
+      "funebris" = "#fb9a99"
+    ),
+    name = "Subspecies"
+  ) 
