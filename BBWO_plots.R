@@ -106,7 +106,10 @@ ggplot(pca_vectors, aes(X1, X2, color = pop)) +
 
 #same groupings as pca 
 
-meta_pca <- meta_pca[match(samples, meta_pca$strpID), ]
+subgroups_ngsadmix <- meta$State_Province[
+  match(samples, meta$strpID)
+]
+
 
 west_states <- c("California", "Oregon", "Washington")
 
@@ -132,9 +135,12 @@ pop_colors <- c(
 )
 
 
-pop_group <- factor(meta_pca$State_Province, levels = pop_levels)
-ord <- order(pop_group)
+pop_group <- factor(
+  subgroups_ngsadmix,
+  levels = pop_levels
+)
 
+ord <- order(pop_group)
 
 #all(meta_pca$strpID == samples) #check to see if it is well aligned 
 
@@ -142,7 +148,7 @@ ord <- order(pop_group)
 ngsADMIX_files<-list.files(path="/media/ssd/Bioinformatics/downstream_analyses/NGSadmix",pattern='qopt',full.names=TRUE)
 
 #for k=2
-k2_files <- files[grepl("k2",ngsADMIX_files)]
+k2_files <- ngsADMIX_files[grepl("k2",ngsADMIX_files)]
 data_k2 <- read.table(k2_files[1])
 
 data_k2 <- data_k2[ord, ]
