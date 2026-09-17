@@ -191,6 +191,8 @@ axis(
   line = 1   # <-- THIS is what fixes overlap
 )
 
+
+
 #for k=3
 k3_files <- files[grepl("k3",ngsADMIX_files)]
 data_k3 <- read.table(k3_files[1])
@@ -304,9 +306,10 @@ fire_matrix<-as.matrix(fire_dist)
 
 ###Mantel test
 #spearman is used since its not assumed to be linear the relationship
-
+library(vegan)
 IBD<- mantel(gen_dist, geo_dist, method = "spearman", permutations = 9999, na.rm = TRUE)
 IBE<- mantel(gen_dist, fire_matrix, method = "spearman", permutations = 9999, na.rm = TRUE)
+
 
 IBD_partial<-mantel.partial(gen_dist, geo_dist, fire_matrix,method = "spearman", permutations = 9999, na.rm = TRUE)
 IBE_partial<-mantel.partial(gen_dist, fire_matrix, geo_dist,method = "spearman", permutations = 9999, na.rm = TRUE)
