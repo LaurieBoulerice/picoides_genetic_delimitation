@@ -1,6 +1,8 @@
 library(dplyr)
 library(sf)
 library(scatterpie)
+library(rnaturalearth)
+library(rnaturalearthdata)
 
 ##################
 #metadata
@@ -350,13 +352,39 @@ ngsadmix_map <- data.frame(
   latitude=meta_map$latitude
 )
 
+#world map
+#base map
+world <- ne_countries(
+  scale = "medium",
+  returnclass = "sf"
+)
+world <- st_transform(world, 4326)
+
+#get dorsalis subspecies in map #from picoides range map
+dorsalis_subsp<-st_read('/media/ssd/picoides_genetic_delimitation/Data/Raw/picoides_range/Dorsalis_subsp/P_dorsalis_subsp.shp')
+
+d_subspecies<-c('bacatus','fasciatus','dorsalis')
+dorsalis_subsp$d_subspecies<-d_subspecies
+dorsalis_subsp<-dorsalis_subsp[,-(1:17)]
+
+bacatus_sf <- dorsalis_subsp[dorsalis_subsp$d_subspecies == "bacatus", ]
+fasciatus_sf <- dorsalis_subsp[dorsalis_subsp$d_subspecies == "fasciatus", ]
+dorsalis_sf <- dorsalis_subsp[dorsalis_subsp$d_subspecies == "dorsalis", ]
+
+all_species_dorsalis <- rbind(
+  bacatus_sf,
+  fasciatus_sf,
+  dorsalis_sf
+)
+
 ggplot() +
   geom_sf(
     data = world,
     fill = "grey100",
     color = "grey50",
     linewidth = 0.3
-  ) +
+  ) + 
+  geom_sf(data = all_species_dorsalis, aes(fill = d_subspecies), color = NA, alpha = 0.4) + #this needs to have the item of picoides range map loaded
   geom_scatterpie(
     aes(
       x = longitude,
@@ -365,7 +393,8 @@ ggplot() +
     data = ngsadmix_map,
     cols = c("K1", "K2"),
     pie_scale = 0.15,
-    color = NA
+    color = NA,
+    alpha = 0.8
   ) +
   scale_fill_manual(
     values = c(
@@ -391,7 +420,7 @@ ggplot() +
     fill = "grey100",
     color = "grey50",
     linewidth = 0.3
-  ) +
+  ) + geom_sf(data = all_species_dorsalis, aes(fill = d_subspecies), color = NA, alpha = 0.4) + 
   geom_scatterpie(
     aes(
       x = longitude,
@@ -400,7 +429,8 @@ ggplot() +
     data = ngsadmix_map,
     cols = c("K1", "K2"),
     pie_scale = 0.03,
-    color = NA
+    color = NA,
+    alpha = 0.8
   ) +
   scale_fill_manual(
     values = c(
@@ -516,7 +546,8 @@ ggplot() +
     fill = "grey100",
     color = "grey50",
     linewidth = 0.3
-  ) +
+  ) + 
+  geom_sf(data = all_species_dorsalis, aes(fill = d_subspecies), color = NA, alpha = 0.4) + #this needs to have the item of picoides range map loaded
   geom_scatterpie(
     aes(
       x = longitude,
@@ -525,23 +556,26 @@ ggplot() +
     data = ngsadmix_map_k3,
     cols = c("K1", "K2","K3"),
     pie_scale = 0.15,
-    color = NA
+    color = NA,
+    alpha = 0.8
   ) +
   scale_fill_manual(
     values = c(
       "K1" = "grey30",
-      "K2" = "grey60",
-      "K3" = "grey80"
+      "K3"="grey60",
+      "K2" = "grey80",
+      "bacatus" = "#b2df8a",  
+      "fasciatus" = "#377eb8", 
+      "dorsalis" = "#fb9a99"
     ),
     name = "Admixture proportion"
-  ) +
+  )  +
   coord_sf(
     xlim = c(-155, -65),
     ylim = c(30, 65),
     expand = FALSE
   ) +
   theme_minimal()
-
 ###############################################
 #Morphological subspecies population assignment
 ###############################################
@@ -581,7 +615,7 @@ pop_colors_ngsadmix_subspecies <- c(
 )
 
 pop_group <- factor(
-  subgroups_ngsadmix_subspecies,
+  subgroups_ngsadmix,
   levels = pop_levels
 )
 
