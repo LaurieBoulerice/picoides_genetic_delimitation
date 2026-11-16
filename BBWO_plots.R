@@ -357,3 +357,103 @@ ggplot(df_ibe, aes(x = fire, y = gen)) +
        x = "Environmental distance",
        y = "Genetic distance")
 
+#################################
+###########FST PLOT##############
+#################################
+
+######Xavier's populations##########
+
+library(tidyverse)
+
+# Directory containing your FST results
+fst_all_dir <- "/media/ssd/Bioinformatics/p_arcticus_02/downstream_analysis/SFS/outputs/xavier_pop_FST"
+
+# Population order
+pops <- c('West', 'South_central', 'North_central', 'NewYork', 'Quebec')
+
+
+#Get only the .global.txt files
+files_all <- list.files(
+  path = fst_all_dir,
+  pattern = "\\.global\\.txt$",
+  full.names = TRUE
+)
+
+# Check that 45 files were found
+length(files_all)
+basename(files_all) #ok all files are there
+
+
+# Read the pairwise FST results
+fst_data_all <- map_dfr(files_all, function(files_all) {
+  
+  values <- scan(files_all, quiet = TRUE)
+  
+  populations <- str_remove(
+    basename(files_all),
+    "\\.global\\.txt$"
+  ) %>%
+    str_split("\\.") %>%
+    unlist()
+  
+  tibble(
+    Pop1 = populations[1],
+    Pop2 = populations[2],
+    FST_unweighted = values[1],
+    FST_weighted = values[2]
+  )
+})
+
+# Create the symmetric FST matrix
+fst_matrix_all <- matrix(
+  NA,
+  nrow = length(pops),
+  ncol = length(pops),
+  dimnames = list(pops, pops)
+)
+
+# Set diagonal to zero
+diag(fst_matrix_all) <- 0
+
+# Fill matrix with weighted FST values
+for (i in seq_len(nrow(fst_data_all))) {
+  
+  p1 <- fst_data_all$Pop1[i]
+  p2 <- fst_data_all$Pop2[i]
+  
+  fst_matrix_all[p1, p2] <- fst_data_all$FST_weighted[i]
+  fst_matrix_all[p2, p1] <- fst_data_all$FST_weighted[i]
+}
+
+# Inspect matrix
+round(fst_matrix_all, 4)
+
+#get only the upper matrix since up and down are the same values
+fst_matrix_all[lower.tri(fst_matrix_all)] <- NA
+
+#flatten the matrix
+library(reshape2)
+
+melt_fst_matrix_all<-melt(fst_matrix_all)
+
+fst_all_plot <- ggplot(melt_fst_matrix_all, aes(x = Var1, y = Var2, fill = value)) +
+  geom_tile(color = "white", linewidth = 0.2) +
+  geom_text(
+    aes(label = ifelse(is.na(value), "", sprintf("%.4f", value))),
+    size = 3
+  ) +
+  scale_fill_gradient(
+    low = "#deebf7",
+    high = "#08519c",
+    na.value = "white",
+    name = expression(F[ST])
+  ) +
+  coord_fixed() +
+  theme_minimal(base_size = 13) +
+  theme(
+    axis.title = element_blank(),
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    panel.grid = element_blank()
+  )
+
+print(fst_all_plot)
