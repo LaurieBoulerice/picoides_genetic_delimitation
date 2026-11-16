@@ -322,7 +322,8 @@ axis(
   tick = FALSE,
   las = 2,
   cex.axis = 0.8,
-  line = 1   # fix overlap
+  line = 1 , # <-- THIS is what fixes overlap
+  gap.axis = 0 #otherwise Utah is not displayed  # fix overlap
 )
 #####################################
 #######map of pie charts of admixture 
@@ -508,7 +509,8 @@ axis(
   tick = FALSE,
   las = 2,
   cex.axis = 0.8,
-  line = 1   # fix overlap
+  line = 1 , # <-- THIS is what fixes overlap
+  gap.axis = 0 #otherwise Utah is not displayed  # fix overlap
 )
 
 #####################################
@@ -691,7 +693,8 @@ axis(
   tick = FALSE,
   las = 2,
   cex.axis = 0.8,
-  line = 1   # <-- THIS is what fixes overlap
+  line = 1  , # <-- THIS is what fixes overlap
+  gap.axis = 0 #otherwise Utah is not displayed
 )
 
 #####
@@ -748,7 +751,8 @@ axis(
   tick = FALSE,
   las = 2,
   cex.axis = 0.8,
-  line = 1   # fix overlap
+  line = 1, # <-- THIS is what fixes overlap
+  gap.axis = 0    # fix overlap
 )
 
 ################################
@@ -839,4 +843,206 @@ pheatmap(
        legend = TRUE
    )
 
+#################################
+###########FST PLOT##############
+#################################
 
+######Marie-Pier's populations##########
+setwd("/media/ssd/Bioinformatics/p_dorsalis_07/downstream_analyses/SFS/outputs/MPpop_FST")
+
+
+library(tidyverse)
+
+# Directory containing your FST results
+fst_dir <- "/media/ssd/Bioinformatics/p_dorsalis_07/downstream_analyses/SFS/outputs/MPpop_FST"
+
+# Population order
+pops <- c("Alaska", "Alberta", "Manitoba",
+          "Quebec", "Pacific", "South")
+
+
+#Get only the .global.txt files
+files <- list.files(
+  path = fst_dir,
+  pattern = "\\.global\\.txt$",
+  full.names = TRUE
+)
+
+# Check that 15 files were found
+length(files)
+basename(files) #ok all files are there
+
+
+# Read the pairwise FST results
+fst_data <- map_dfr(files, function(file) {
+  
+  values <- scan(file, quiet = TRUE)
+  
+  populations <- str_remove(
+    basename(file),
+    "\\.global\\.txt$"
+  ) %>%
+    str_split("\\.") %>%
+    unlist()
+  
+  tibble(
+    Pop1 = populations[1],
+    Pop2 = populations[2],
+    FST_unweighted = values[1],
+    FST_weighted = values[2]
+  )
+})
+
+# Create the symmetric FST matrix
+fst_matrix <- matrix(
+  NA,
+  nrow = length(pops),
+  ncol = length(pops),
+  dimnames = list(pops, pops)
+)
+
+# Set diagonal to zero
+diag(fst_matrix) <- 0
+
+# Fill matrix with weighted FST values
+for (i in seq_len(nrow(fst_data))) {
+  
+  p1 <- fst_data$Pop1[i]
+  p2 <- fst_data$Pop2[i]
+  
+  fst_matrix[p1, p2] <- fst_data$FST_weighted[i]
+  fst_matrix[p2, p1] <- fst_data$FST_weighted[i]
+}
+
+# Inspect matrix
+round(fst_matrix, 4)
+
+#get only the upper matrix since up and down are the same values
+fst_matrix[lower.tri(fst_matrix)] <- NA
+
+#flatten the matrix
+library(reshape2)
+
+melt_fst_matrix<-melt(fst_matrix)
+
+p <- ggplot(melt_fst_matrix, aes(x = Var1, y = Var2, fill = value)) +
+  geom_tile(color = "white", linewidth = 0.2) +
+  geom_text(
+    aes(label = ifelse(is.na(value), "", sprintf("%.4f", value))),
+    size = 4
+  ) +
+  scale_fill_gradient(
+    low = "#deebf7",
+    high = "#08519c",
+    na.value = "white",
+    name = expression(F[ST])
+  ) +
+  coord_fixed() +
+  theme_minimal(base_size = 13) +
+  theme(
+    axis.title = element_blank(),
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    panel.grid = element_blank()
+  )
+
+print(p)
+
+
+######ALL states and provinces########
+
+
+library(tidyverse)
+
+# Directory containing your FST results
+fst_all_dir <- "/media/ssd/Bioinformatics/p_dorsalis_07/downstream_analyses/SFS/outputs/allpop_FST"
+
+# Population order
+# as Utah only had one sample it wasn't calculated so its empty. For this reason I won't include it 
+pops <- c('NewMexico', 'Arizona', 'Colorado', 'Washington', 'Oregon', 'BritishColumbia', 'Alaska', 'Manitoba', 'Alberta', 'Quebec')
+
+
+#Get only the .global.txt files
+files_all <- list.files(
+  path = fst_all_dir,
+  pattern = "\\.global\\.txt$",
+  full.names = TRUE
+)
+
+# Check that 45 files were found
+length(files_all)
+basename(files_all) #ok all files are there
+
+
+# Read the pairwise FST results
+fst_data_all <- map_dfr(files_all, function(files_all) {
+  
+  values <- scan(files_all, quiet = TRUE)
+  
+  populations <- str_remove(
+    basename(files_all),
+    "\\.global\\.txt$"
+  ) %>%
+    str_split("\\.") %>%
+    unlist()
+  
+  tibble(
+    Pop1 = populations[1],
+    Pop2 = populations[2],
+    FST_unweighted = values[1],
+    FST_weighted = values[2]
+  )
+})
+
+# Create the symmetric FST matrix
+fst_matrix_all <- matrix(
+  NA,
+  nrow = length(pops),
+  ncol = length(pops),
+  dimnames = list(pops, pops)
+)
+
+# Set diagonal to zero
+diag(fst_matrix_all) <- 0
+
+# Fill matrix with weighted FST values
+for (i in seq_len(nrow(fst_data_all))) {
+  
+  p1 <- fst_data_all$Pop1[i]
+  p2 <- fst_data_all$Pop2[i]
+  
+  fst_matrix_all[p1, p2] <- fst_data_all$FST_weighted[i]
+  fst_matrix_all[p2, p1] <- fst_data_all$FST_weighted[i]
+}
+
+# Inspect matrix
+round(fst_matrix_all, 4)
+
+#get only the upper matrix since up and down are the same values
+fst_matrix_all[lower.tri(fst_matrix_all)] <- NA
+
+#flatten the matrix
+library(reshape2)
+
+melt_fst_matrix_all<-melt(fst_matrix_all)
+
+fst_all_plot <- ggplot(melt_fst_matrix_all, aes(x = Var1, y = Var2, fill = value)) +
+  geom_tile(color = "white", linewidth = 0.2) +
+  geom_text(
+    aes(label = ifelse(is.na(value), "", sprintf("%.4f", value))),
+    size = 3
+  ) +
+  scale_fill_gradient(
+    low = "#deebf7",
+    high = "#08519c",
+    na.value = "white",
+    name = expression(F[ST])
+  ) +
+  coord_fixed() +
+  theme_minimal(base_size = 13) +
+  theme(
+    axis.title = element_blank(),
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    panel.grid = element_blank()
+  )
+
+print(fst_all_plot)
